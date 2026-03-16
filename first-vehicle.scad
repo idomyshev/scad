@@ -5,7 +5,7 @@ hole_d = 4.9;
 hole_d_tight = hole_d - 0.15;
 pitch = 8; 
 gear_dist = pitch * 3; 
-wheel_dist = pitch * 6; 
+wheel_dist = pitch * 9; 
 
 // ISO gear: pitch diameter = gear_dist; center distance matches
 gear_teeth = 24;
@@ -27,6 +27,10 @@ module gear() {
     involute_gear(gear_dist+1.15, gear_teeth, thickness, gear_pressure_angle, involute_facets = 0, bore_diameter = false, cross_axle = true);
 }
 
+module big_gear(diameter) {
+    involute_gear(diameter, gear_teeth, thickness, gear_pressure_angle, involute_facets = 0, bore_diameter = false, cross_axle = true);
+}
+
 // --- Main part module ---
 module side_plate() {
     difference() {
@@ -35,17 +39,17 @@ module side_plate() {
             // Arms to wheels
             hull() {
                 cylinder(d = 30, h = thickness, center = true);
-                translate([-wheel_dist, -pitch*2, 0]) 
+                translate([-wheel_dist, -pitch*3, 0]) 
                     cylinder(d = 16, h = thickness, center = true);
-                translate([wheel_dist, -pitch*2, 0])  
+                translate([wheel_dist, -pitch*3, 0])  
                     cylinder(d = 16, h = thickness, center = true);
             }
         }
         
         // Lower arc cutout
         color(my_cutter_color)   
-        translate([0, -125, 0])
-            cylinder(d = 225, h = thickness + 2, center = true);
+        translate([0, -182, 0])
+            cylinder(d = 330, h = thickness + 2, center = true);
 
         // Holes
         color(my_cutter_color) {
@@ -59,13 +63,13 @@ module side_plate() {
 
             // Idler gears and wheel axles
             for (s = [-1, 1]) {
-                translate([s * gear_dist, -pitch, 0]) hole();
-                translate([s * wheel_dist, -pitch*2, 0]) hole();
+                //translate([s * gear_dist, -pitch, 0]) hole();
+                translate([s * wheel_dist, -pitch*3, 0]) hole();
             }
 
             // Cross beam mounts
-            translate([-wheel_dist/2, 10, 0]) hole();
-            translate([wheel_dist/2, 10, 0])  hole();
+            // translate([-wheel_dist/2, 10, 0]) hole();
+            // translate([wheel_dist/2, 10, 0])  hole();
         }
     }
 }
@@ -81,11 +85,18 @@ translate([0, 0, thickness])
     gear();
 
 // Idler gears at [±gear_dist, -pitch], same Z as center gear
-color(my_gear_color)
+color([0.55, 0.45, 1, 1])
 for (s = [1, -1]) {
-    translate([s * gear_dist, -pitch, thickness])
+    translate([s * 27, -pitch*2, thickness])
+        rotate([0, 0, s * 3])
+            big_gear(40);
+}
+
+color([0.55, 0.45, 0.35, 1])
+for (s = [1, -1]) {
+    translate([s * wheel_dist, -pitch*3, thickness])
         rotate([0, 0, s * 0.65])
-            gear();
+            big_gear(50);
 }
 
 // Second side plate (offset along Z so they face each other)
