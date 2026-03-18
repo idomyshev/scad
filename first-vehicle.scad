@@ -7,9 +7,14 @@ pitch = 8;
 gear_dist = pitch * 3; 
 wheel_dist = pitch * 9; 
 
-// ISO gear: pitch diameter = gear_dist; center distance matches
-gear_teeth = 24;
+// Same module for all gears so they can mesh
+gear_module = 2;
 gear_pressure_angle = 20;
+
+// Middle gear position on line center(0,0)–wheel(wheel_dist, -pitch*3): 0 = at center, 1 = at wheel
+mid_gear_t = 0.421;
+mid_gear_x = mid_gear_t * wheel_dist;
+mid_gear_y = -mid_gear_t * pitch * 3;
 
 my_body_color = [119/255, 136/255, 153/255, 0.9];
 my_cutter_color = [1, 0, 0, 0.5];
@@ -22,13 +27,10 @@ module hole() {
     cylinder(d = hole_d, h = thickness + 2, center = true);
 }
 
-// Local gear using library and project params
-module gear() {
-    involute_gear(gear_dist+1.15, gear_teeth, thickness, gear_pressure_angle, involute_facets = 0, bore_diameter = false, cross_axle = true);
-}
-
-module big_gear(diameter) {
-    involute_gear(diameter, gear_teeth, thickness, gear_pressure_angle, involute_facets = 0, bore_diameter = false, cross_axle = true);
+// Any diameter: teeth = diameter/module so tooth size stays same and gears mesh
+module make_gear(diameter) { 
+    teeth = max(8, round(diameter / gear_module));
+    involute_gear(teeth * gear_module, teeth, thickness, gear_pressure_angle, involute_facets = 0, bore_diameter = false, cross_axle = true);
 }
 
 // --- Main part module ---
@@ -61,9 +63,9 @@ module side_plate() {
                 translate([pos[0], pos[1], 0]) hole();
             }
 
-            // Idler gears and wheel axles
+            // Middle and wheel axle holes (middle position from mid_gear_t)
             for (s = [-1, 1]) {
-                //translate([s * gear_dist, -pitch, 0]) hole();
+                translate([s * mid_gear_x, mid_gear_y, 0]) hole();
                 translate([s * wheel_dist, -pitch*3, 0]) hole();
             }
 
@@ -82,21 +84,21 @@ side_plate();
 // Gear opposite the center hole, touching the side plate on its face (same XY, offset by thickness along Z)
 color(my_gear_color)
 translate([0, 0, thickness])
-    gear();
+    make_gear(24);
 
-// Idler gears at [±gear_dist, -pitch], same Z as center gear
+// Middle gears on line center–wheel; position by mid_gear_t (0..1)
 color([0.55, 0.45, 1, 1])
 for (s = [1, -1]) {
-    translate([s * 27, -pitch*2, thickness])
+    translate([s * mid_gear_x, mid_gear_y, thickness])
         rotate([0, 0, s * 3])
-            big_gear(40);
+            make_gear(40);
 }
 
 color([0.55, 0.45, 0.35, 1])
 for (s = [1, -1]) {
     translate([s * wheel_dist, -pitch*3, thickness])
         rotate([0, 0, s * 0.65])
-            big_gear(50);
+            make_gear(50);
 }
 
 // Second side plate (offset along Z so they face each other)
