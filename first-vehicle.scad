@@ -12,9 +12,11 @@ gear_module = 2;
 gear_pressure_angle = 20;
 
 // Middle gear position on line center(0,0)–wheel(wheel_dist, -pitch*3): 0 = at center, 1 = at wheel
-mid_gear_t = 0.421;
+mid_gear_t = 0.410;
 mid_gear_x = mid_gear_t * wheel_dist;
 mid_gear_y = -mid_gear_t * pitch * 3;
+// Middle 40t pair: one knob; left/right rotate opposite (s * angle) so both stay meshable with neighbors
+mid_gear_phase_z = 15.6;
 
 my_body_color = [119/255, 136/255, 153/255, 0.9];
 my_cutter_color = [1, 0, 0, 0.5];
@@ -90,7 +92,7 @@ translate([0, 0, thickness])
 color([0.55, 0.45, 1, 1])
 for (s = [1, -1]) {
     translate([s * mid_gear_x, mid_gear_y, thickness])
-        rotate([0, 0, s * 3])
+        rotate([0, 0, s * mid_gear_phase_z])
             make_gear(40);
 }
 
