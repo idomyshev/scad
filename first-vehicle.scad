@@ -11,10 +11,7 @@ wheel_dist = pitch * 9;
 gear_module = 2;
 gear_pressure_angle = 20;
 
-// Middle gear position on line center(0,0)–wheel(wheel_dist, -pitch*3): 0 = at center, 1 = at wheel
-mid_gear_t = 0.410;
-mid_gear_x = mid_gear_t * wheel_dist;
-mid_gear_y = -mid_gear_t * pitch * 3;
+
 // Middle gear pair: one knob; left/right rotate opposite (s * angle) so both stay meshable with neighbors
 mid_gear_phase_z = 15.6;
 
@@ -35,7 +32,50 @@ function _color_named(name, entries, i = 0) =
 
 function color_named(name) = _color_named(name, COLORS);
 
+// Polar → XY: angle in degrees (0 = +X, increases CCW when looking from +Z; same as rotate([0,0,…])).
+// distance is radius in model units (e.g. mm). Returns [x, y] for translate([p[0], p[1], z]).
+function xy_from_angle_distance(angle_deg, distance) =
+    [distance * cos(angle_deg), distance * sin(angle_deg)];
+
+// --- Gear spacing (ideal mesh, same module on both gears) ---
+// Nominal center distance for standard involute spur gears: pitch (reference) circles are tangent.
+// That is the textbook "no backlash" distance; real prints often need a tiny extra gap (material, FDM).
+//
+// IMPORTANT: arguments must be PITCH diameters d = module * teeth — the same meaning as the first
+// argument to involute_gear() / your make_gear() (teeth * gear_module). NOT outer (tip) diameter.
+// If d1 and d2 are already pitch diameters, module does NOT go into the formula again — size is in d.
+function gear_mesh_center_distance(pitch_diameter_1, pitch_diameter_2) =
+    (pitch_diameter_1 + pitch_diameter_2) / 2;
+
+// Pitch diameter from tooth count and module (same convention as make_gear: z = max(8, round(teeth))).
+function gear_pitch_diameter(teeth, module_) = max(8, round(teeth)) * module_;
+
+// Same center distance, but from tooth counts + shared module (both gears use this module).
+function gear_mesh_center_distance_teeth(teeth_1, teeth_2, module_) =
+    gear_mesh_center_distance(
+        gear_pitch_diameter(teeth_1, module_),
+        gear_pitch_diameter(teeth_2, module_)
+    );
+
+// Aliases (older names)
+function gear_center_distance_pitch_diameter(pitch_diameter_1, pitch_diameter_2) =
+    gear_mesh_center_distance(pitch_diameter_1, pitch_diameter_2);
+
+function gear_center_distance_teeth(teeth_1, teeth_2, module_) =
+    gear_mesh_center_distance_teeth(teeth_1, teeth_2, module_);
+
+// Same as gear_mesh_center_distance_teeth(z1, z2, gear_module) — for this file’s shared module only.
+function gear_mesh_spacing_teeth(z1, z2) = gear_mesh_center_distance_teeth(z1, z2, gear_module);
+
 include <involute_gear.scad>
+
+// Middle gear on ray from center (0,0) toward wheel hub (wheel_dist, -pitch*3); t=0 at center, t=1 at wheel
+mid_gear_t = 0.420;
+mid_gear_arm_angle_deg = atan2(-pitch * 3, wheel_dist);
+mid_gear_arm_length = sqrt(wheel_dist * wheel_dist + (pitch * 3) * (pitch * 3));
+mid_gear_xy = xy_from_angle_distance(mid_gear_arm_angle_deg, mid_gear_t * mid_gear_arm_length);
+mid_gear_x = mid_gear_xy[0];
+mid_gear_y = mid_gear_xy[1];
 
 // --- Helper modules ---
 module hole() {
@@ -116,17 +156,7 @@ color(color_named("gear_bronze"))
 translate([0, 0, thickness])
     make_gear(12);
 
-// Middle gears on line center–wheel; position by mid_gear_t (0..1)
-paired_mirrored_gears(19, mid_gear_phase_z, mid_gear_x, mid_gear_y, color_named("gear_middle_pair"));
+// mid_gear_x / mid_gear_y come from xy_from_angle_distance above (same numbers as mid_gear_t * arm)
+paired_mirrored_gears(20, -3, mid_gear_xy[0], mid_gear_xy[1], color_named("gear_middle_pair"));
 
-color(color_named("gear_bronze"))
-for (s = [1, -1]) {
-    translate([s * wheel_dist, -pitch*3, thickness])
-        rotate([0, 0, s * 0.65])
-            make_gear(24);
-}
-
-// Second side plate (offset along Z so they face each other)
-// 40mm is approximate spacing between side plates for motor width
-// translate([0, 0, 40]) 
-//     side_plate();
+paired_mirrored_gears(24, 7, wheel_dist, -pitch * 3, color_named("gear_bronze"));
