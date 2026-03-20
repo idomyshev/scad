@@ -69,13 +69,7 @@ function gear_mesh_spacing_teeth(z1, z2) = gear_mesh_center_distance_teeth(z1, z
 
 include <involute_gear.scad>
 
-// Middle gear on ray from center (0,0) toward wheel hub (wheel_dist, -pitch*3); t=0 at center, t=1 at wheel
-mid_gear_t = 0.420;
-mid_gear_arm_angle_deg = atan2(-pitch * 3, wheel_dist);
-mid_gear_arm_length = sqrt(wheel_dist * wheel_dist + (pitch * 3) * (pitch * 3));
-mid_gear_xy = xy_from_angle_distance(mid_gear_arm_angle_deg, mid_gear_t * mid_gear_arm_length);
-mid_gear_x = mid_gear_xy[0];
-mid_gear_y = mid_gear_xy[1];
+
 
 // --- Helper modules ---
 module hole() {
@@ -146,8 +140,6 @@ module side_plate() {
     }
 }
 
-// --- Render parts ---
-
 // First side plate
 side_plate();
 
@@ -156,7 +148,10 @@ color(color_named("gear_bronze"))
 translate([0, 0, thickness])
     make_gear(12);
 
-// mid_gear_x / mid_gear_y come from xy_from_angle_distance above (same numbers as mid_gear_t * arm)
+center_mid_dist = gear_mesh_spacing_teeth(12, 20);
+mid_gear_xy = xy_from_angle_distance(-18, center_mid_dist);
 paired_mirrored_gears(20, -3, mid_gear_xy[0], mid_gear_xy[1], color_named("gear_middle_pair"));
 
-paired_mirrored_gears(24, 7, wheel_dist, -pitch * 3, color_named("gear_bronze"));
+mid_fin_dist = gear_mesh_spacing_teeth(20, 24);
+fin_gear_xy = xy_from_angle_distance(-18, center_mid_dist + mid_fin_dist);
+paired_mirrored_gears(24, 7, fin_gear_xy[0], fin_gear_xy[1], color_named("gear_bronze"));
