@@ -6,7 +6,7 @@ hole_d_tight = hole_d - 0.15;
 // Pin holes (grid on side frame); separate from hole_d_tight for clarity
 pin_hole = hole_d - 0.15;
 // Minimum distance from pin center to the part outline (outer hull + bottom cut edge), mm
-pin_hole_edge_clearance = 4;
+pin_hole_edge_clearance = 4.2;
 pitch = 8; 
 gear_dist = pitch * 3; 
 wheel_dist = pitch * 9; 

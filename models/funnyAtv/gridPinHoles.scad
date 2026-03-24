@@ -91,20 +91,27 @@ function _pin_center_allowed_(p, hull_poly, axles) =
     && _clearance_from_bottom_cut_edge_(p) >= e
     && _min_dist_to_points_(p, axles) >= min_axle_clearance_for_pin_grid;
 
-// Grid over bbox shrunk by edge clearance so candidates are not generated on the bbox rim.
+// Grid over bbox shrunk by edge clearance; cell centers are centered on the hull AABB center
+// (same as frame center when the outline is symmetric in XY).
 function grid_pin_hole_positions() =
     let(b = _hull_bbox_side_frame_())
     let(e = pin_hole_edge_clearance)
     let(xmin = b[0] + e, xmax = b[1] - e, ymin = b[2] + e, ymax = b[3] - e)
-    let(nx = floor((xmax - xmin) / grid_pin_pitch))
-    let(ny = floor((ymax - ymin) / grid_pin_pitch))
+    let(cx = (xmin + xmax) / 2)
+    let(cy = (ymin + ymax) / 2)
+    let(wx = xmax - xmin)
+    let(wy = ymax - ymin)
+    let(nx = floor(wx / grid_pin_pitch))
+    let(ny = floor(wy / grid_pin_pitch))
+    let(x0 = cx - (nx - 1) * grid_pin_pitch / 2)
+    let(y0 = cy - (ny - 1) * grid_pin_pitch / 2)
     let(hull_poly = _hull_outline_poly_())
     let(axles = _axle_centers_side_frame_())
     [
         for (kx = [0 : max(0, nx - 1)])
             for (ky = [0 : max(0, ny - 1)])
-                let(x = xmin + grid_pin_pitch / 2 + kx * grid_pin_pitch)
-                let(y = ymin + grid_pin_pitch / 2 + ky * grid_pin_pitch)
+                let(x = x0 + kx * grid_pin_pitch)
+                let(y = y0 + ky * grid_pin_pitch)
                 let(p = [x, y])
                 if (_pin_center_allowed_(p, hull_poly, axles))
                     p
