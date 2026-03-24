@@ -17,6 +17,17 @@ gear_pressure_angle = 20;
 gear_center_cross_d = 4.85;
 gear_center_cross_arm_w = 1.9;
 
+// Sample brick beside the model: test LEGO pins/axles (round holes through thickness), see lib/samples/sample_cube_fit_test.scad
+sample_cube_enabled = true;
+sample_cube_length = 50;
+sample_cube_width = 20;
+sample_cube_offset_x = 130;
+sample_cube_offset_y = 0;
+sample_cube_hole_d_min = 4.5;
+sample_cube_hole_d_max = 5.0;
+sample_cube_hole_d_step = 0.1;
+sample_cube_hole_margin = 5;
+sample_cube_color = [0.78, 0.78, 0.82];
 
 // Middle gear pair: one knob; left/right rotate opposite (s * angle) so both stay meshable with neighbors
 mid_gear_phase_z = 15.6; 
@@ -71,11 +82,14 @@ include <../lib/core/gears/mirroredGears.scad>
 include <../lib/core/gears/drawGearByTeeth.scad>
 include <../lib/core/lego/legoAxisHole.scad>
 include <../lib/utils/getColor.scad>
+include <../lib/samples/sample_cube_fit_test.scad>
 
 // Build side frame (uses globals above + legoAxisHole(), getColor, thickness, pitch, wheel_dist)
 sideFrame();
 // Строим шестерни
 sideFrameGears();
+
+if (sample_cube_enabled) sample_cube_fit_test();
 
 
 
