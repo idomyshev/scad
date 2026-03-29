@@ -76,18 +76,22 @@ mid_fin_dist = gear_mesh_spacing_teeth(20, 24);
 mid_gear_xy = xy_from_angle_distance(-18, center_mid_dist);
 fin_gear_xy = xy_from_angle_distance(-18, center_mid_dist + mid_fin_dist);
 
+include <../lib/utils/getColor.scad>
 include <funnyAtv/sideFrame.scad>
 include <funnyAtv/sideFrameGears.scad>
+// Pulls in funnyAtv/settings.scad for connector dimensions
+include <funnyAtv/connectorFrame.scad>
 include <../lib/core/gears/mirroredGears.scad>
 include <../lib/core/gears/drawGearByTeeth.scad>
 include <../lib/core/lego/legoAxisHole.scad>
-include <../lib/utils/getColor.scad>
 include <../lib/samples/sample_cube_fit_test.scad>
 
 // Build side frame (uses globals above + legoAxisHole(), getColor, thickness, pitch, wheel_dist)
-sideFrame();
+// sideFrame();
 // Строим шестерни
 //sideFrameGears();
+
+connectorFrame();
 
 //if (sample_cube_enabled) sample_cube_fit_test();
 

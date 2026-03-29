@@ -118,5 +118,5 @@ function grid_pin_hole_positions() =
     ];
 
 module legoPinHole() {
-    cylinder(d = pin_hole, h = thickness + 2, center = true);
+    cylinder(d = pin_hole, h = generalPinHoleWidth, center = true);
 }
